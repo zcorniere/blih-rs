@@ -8,4 +8,7 @@ edition = "2018"
 
 [dependencies]
 rpassword = "4.0"
-json = "*"
+json = "0.12.1"
+rust-crypto = "0.2"
+hex = "0.4.1"
+
