@@ -5,7 +5,7 @@ use crypto::mac::Mac;
 use rpassword::prompt_password_stdout;
 
 const VERSION :&str = "1.7";
-const URL: &str = "https://blih.epitech.eu/";
+pub const URL: &str = "https://blih.epitech.eu/";
 
 pub struct Blih {
     user_agent: String,
