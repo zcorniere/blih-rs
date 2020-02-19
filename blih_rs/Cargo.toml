@@ -1,17 +1,17 @@
 [package]
-name = "blih"
+name = "blih_rs"
 version = "0.0.1"
 authors = ["Zacharie Corniere <zacharie.corniere@epitech.eu>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies.blih_rs]
-path = "./blih_rs"
-
-[dependencies.clap]
-version = "~2.33"
-features = ["yaml"]
+[dependencies]
+rpassword = "4.0"
+rust-crypto = "0.2"
+hex = "0.4.2"
 
 [dependencies.reqwest]
 version = "~0.10"
+default-features = true
+features = ["json", "blocking"]

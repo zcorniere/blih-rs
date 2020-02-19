@@ -1,0 +1,31 @@
+# TODO
+# -t <token>
+# -b <url>
+
+name: blih
+about: Epitech blih client
+args:
+    - verbose:
+        short: v
+        long: verbose
+        help: Verbose
+    - user:
+        short: u
+        long: user
+        help: Run as user
+        takes_value: true
+        value_name: user
+    - token:
+        short: t
+        long: token
+        help: Specify login token
+        takes_value: true
+        value_name: token
+subcommands:
+    - whoami:
+        about: Print who you are
+    - repository:
+        about: Repository management
+        subcommands:
+            - list:
+                about: list the repositories

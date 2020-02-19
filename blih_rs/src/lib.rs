@@ -4,65 +4,66 @@ use crypto::hmac::Hmac;
 use crypto::mac::Mac;
 use rpassword::prompt_password_stdout;
 
-mod blih_err;
-use crate::blih_err::BlihErr;
+use std::fmt;
 
 use std::collections::HashMap;
 use reqwest::Url;
-use reqwest::blocking::Response;
 use reqwest::header::USER_AGENT;
+use reqwest::Method;
 
 const VERSION :&str = "1.7";
 pub const URL: &str = "https://blih.epitech.eu";
 
 pub struct Blih {
     user_agent: String,
-    method: reqwest::Method,
-    request: String,
-    user: String,
+    user: Option<String>,
     token: Option<String>,
 }
 
 impl Blih {
     /// return a new Blith struct
-    pub fn new(request :String, user :Option<String>, token :Option<String>, method :reqwest::Method) -> Blih {
+    pub fn new(user :Option<&str>, token :Option<&str>) -> Blih {
         let user = match user {
-            Some(s) => s,
-            None    => std::env::var("BLIH_USER").unwrap(),
+            Some(s) => Some(String::from(s)),
+            None    => match std::env::var("BLIH_USER") {
+                    Ok(o)  => Some(o),
+                    Err(_) => None,
+                },
         };
         let token = match token {
-            Some(s) => Some(s),
+            Some(s) => Some(String::from(s)),
             None    => match std::env::var("BLIH_TOKEN") {
-                    Ok(val) => Some(val),
+                    Ok(o) => Some(o),
                     Err(_)  => None,
                 },
         };
         let user_agent = String::from("blih-".to_owned() + VERSION);
         Blih {
             user_agent,
-            method,
-            request,
             user,
             token,
         }
     }
 
-    // /*TODO*/ get password from env var
     /// Promt the user for his password.
-    pub fn ask_password(&mut self) {
+    pub fn ask_password(&mut self) -> Result<(), BlihErr> {
         match prompt_password_stdout("Password: ") {
             Ok(s) => {
                 let mut hash = Sha512::new();
                 hash.input_str(&s);
                 let hex = hash.result_str();
                 let mut hmac = Hmac::new(Sha512::new(), hex.as_bytes());
-                hmac.input(self.user.as_bytes());
+                hmac.input(match &self.user {
+                    Some(s) => s.as_bytes(),
+                    None    => return Err(BlihErr::NoUserNameProvided),
+                });
                 let hex = hmac.result();
                 let hex = hex.code();
                 self.token = Some(hex::encode(hex))
             },
             Err(_) => self.token = None,
         };
+        Ok(())
     }
 
     /// return the user_agent
@@ -70,13 +71,8 @@ impl Blih {
         &self.user_agent
     }
 
-    /// return the action to be executed
-    pub fn get_request(&self) -> &String {
-        &self.request
-    }
-
     /// return the user
-    pub fn get_user(&self) -> &String {
+    pub fn get_user(&self) -> &Option<String> {
         &self.user
     }
 
@@ -85,28 +81,60 @@ impl Blih {
         &self.token
     }
 
-    pub fn send_request(&self) -> Result<Response, BlihErr> {
+    pub fn whoami(&self) -> Result<String, BlihErr> {
+        self.request("/whoami", Method::GET)
+    }
+
+    pub fn list_repo(&self) -> Result<String, BlihErr> {
+        self.request("/repositories", Method::GET)
+    }
+
+    fn request(&self, path: &str, meth: Method) -> Result<String, BlihErr> {
         let mut map = HashMap::new();
-        map.insert("user", self.user.as_str());
+        map.insert("user", match &self.user {
+            Some(s) => s.as_str(),
+            None    => return Err(BlihErr::NoUserNameProvided),
+        });
         map.insert("signature", match &self.token {
             Some(s) => s.as_str(),
             None    => return Err(BlihErr::NoTokenProvided),
         });
         let mut uri = String::from(URL);
-        uri.push_str(&self.request);
+        uri.push_str(path);
         let uri = match Url::parse(uri.as_str()) {
                 Ok(o)  => o,
                 Err(_) => return Err(BlihErr::InvalidUrl),
             };
 
         let client = reqwest::blocking::Client::new();
-        let res = client.request(self.method.clone(), uri)
+        let res = client.request(meth, uri)
                     .header(USER_AGENT, &self.user_agent)
                     .json(&map).send();
         let res = match res {
             Ok(o)  => o,
             Err(_) => return Err(BlihErr::RequestFailed),
         };
-        Ok(res)
+        Ok(res.text().unwrap())
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum BlihErr {
+    InvalidRequest,
+    InvalidUrl,
+    RequestFailed,
+    NoTokenProvided,
+    NoUserNameProvided,
+}
+
+impl fmt::Display for BlihErr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            BlihErr::InvalidRequest     => write!(f, "Invalid request"),
+            BlihErr::InvalidUrl         => write!(f, "Invalid Url"),
+            BlihErr::RequestFailed      => write!(f, "Request Failed"),
+            BlihErr::NoTokenProvided    => write!(f, "No token was provided"),
+            BlihErr::NoUserNameProvided => write!(f, "No username was provided"),
+        }
     }
 }
