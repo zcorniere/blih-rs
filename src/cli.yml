@@ -4,6 +4,8 @@
 
 name: blih
 about: Epitech blih client
+settings:
+    - SubcommandRequiredElseHelp
 args:
     - verbose:
         short: v
@@ -26,6 +28,29 @@ subcommands:
         about: Print who you are
     - repository:
         about: Repository management
+        settings:
+            - SubcommandRequiredElseHelp
         subcommands:
             - list:
                 about: list the repositories
+            - create:
+                about: create a repo
+                args:
+                    - NAME:
+                        help: Name of the repo
+                        index: 1
+                        required: true
+            - delete:
+                about: delete a repo
+                args:
+                    - NAME:
+                        help: Name of the repo
+                        index: 1
+                        required: true
+            - info:
+                about: get informations about a repo
+                args:
+                    - NAME:
+                        help: Name of the repo
+                        index: 1
+                        required: true

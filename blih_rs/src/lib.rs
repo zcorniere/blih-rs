@@ -82,14 +82,29 @@ impl Blih {
     }
 
     pub fn whoami(&self) -> Result<String, BlihErr> {
-        self.request("/whoami", Method::GET)
+        self.request("/whoami", Method::GET, None)
     }
 
     pub fn list_repo(&self) -> Result<String, BlihErr> {
-        self.request("/repositories", Method::GET)
+        self.request("/repositories", Method::GET, None)
     }
 
-    fn request(&self, path: &str, meth: Method) -> Result<String, BlihErr> {
+    pub fn info_repo(&self, name: &str) -> Result<String, BlihErr> {
+        self.request(&("/repository/".to_owned() + name), Method::GET, None)
+    }
+
+    pub fn delete_repo(&self, name: &str) -> Result<String, BlihErr> {
+        self.request(&("/repository/".to_owned() + name), Method::DELETE, None)
+    }
+
+    pub fn create_repo(&self, name: &str) -> Result<String, BlihErr> {
+        let mut map = HashMap::new();
+        map.insert("name", name);
+        map.insert("type", "git");
+        self.request("/repositories", Method::POST, Some(map))
+    }
+
+    fn request(&self, path: &str, meth: Method, map_sup: Option<HashMap<&str, &str>>) -> Result<String, BlihErr> {
         let mut map = HashMap::new();
         map.insert("user", match &self.user {
             Some(s) => s.as_str(),
@@ -99,6 +114,11 @@ impl Blih {
             Some(s) => s.as_str(),
             None    => return Err(BlihErr::NoTokenProvided),
         });
+        if map_sup.is_some() {
+            for (k, v) in map_sup.unwrap().drain() {
+                map.insert(k, v);
+            }
+        }
         let mut uri = String::from(URL);
         uri.push_str(path);
         let uri = match Url::parse(uri.as_str()) {

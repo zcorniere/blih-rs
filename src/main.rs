@@ -44,8 +44,21 @@ fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihEr
         Some(s) => s,
         None    => panic!(),
     };
-    match args.subcommand_matches("list") {
+    let mut ret: Result<String, BlihErr> = match args.subcommand_matches("list") {
         Some(_) => auth.list_repo(),
-        None    => Ok(String::from("Not a valid sub command of \"repository\"")),
-    }
+        None    => Err(BlihErr::InvalidRequest),
+    };
+    ret = match args.subcommand_matches("info") {
+        Some(e) => auth.info_repo(e.value_of("NAME").unwrap()),
+        None    => Err(BlihErr::InvalidRequest),
+    };
+    ret = match args.subcommand_matches("delete") {
+        Some(e) => auth.delete_repo(e.value_of("NAME").unwrap()),
+        None    => Err(BlihErr::InvalidRequest),
+    };
+    ret = match args.subcommand_matches("create") {
+        Some(e) => auth.create_repo(e.value_of("NAME").unwrap()),
+        None    => Err(BlihErr::InvalidRequest),
+    };
+    ret
 }
