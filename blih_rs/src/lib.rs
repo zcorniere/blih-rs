@@ -51,21 +51,26 @@ impl Blih {
             Ok(s) => {
                 let mut hash = Sha512::new();
                 hash.input_str(&s);
-                let hex = hash.result_str();
-                let mut hmac = Hmac::new(Sha512::new(), hex.as_bytes());
-                hmac.input(match &self.user {
-                    Some(s) => s.as_bytes(),
-                    None    => return Err(BlihErr::NoUserNameProvided),
-                });
-                let hex = hmac.result();
-                let hex = hex.code();
-                self.token = Some(hex::encode(hex))
+                self.token = Some(hash.result_str());
             },
             Err(_) => self.token = None,
         };
         Ok(())
     }
 
+    fn sign_token(&self) -> Result<String, BlihErr> {
+        let mut hmac = Hmac::new(Sha512::new(), match &self.token {
+            Some(s) => s.as_bytes(),
+            None    => return Err(BlihErr::NoTokenProvided),
+        });
+        hmac.input(match &self.user {
+            Some(s) => s.as_bytes(),
+            None    => return Err(BlihErr::NoUserNameProvided),
+        });
+        let hex = hmac.result();
+        let hex = hex.code();
+        Ok(hex::encode(hex))
+    }
     /// return the user_agent
     pub fn get_user_agent(&self) -> &String {
         &self.user_agent
@@ -106,13 +111,14 @@ impl Blih {
 
     fn request(&self, path: &str, meth: Method, map_sup: Option<HashMap<&str, &str>>) -> Result<String, BlihErr> {
         let mut map = HashMap::new();
+        let token = self.sign_token();
         map.insert("user", match &self.user {
             Some(s) => s.as_str(),
             None    => return Err(BlihErr::NoUserNameProvided),
         });
-        map.insert("signature", match &self.token {
-            Some(s) => s.as_str(),
-            None    => return Err(BlihErr::NoTokenProvided),
+        map.insert("signature", match &token {
+            Ok(s)  => s.as_str(),
+            Err(_) => return Err(BlihErr::NoTokenProvided),
         });
         if map_sup.is_some() {
             for (k, v) in map_sup.unwrap().drain() {
