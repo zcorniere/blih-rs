@@ -12,8 +12,12 @@ use reqwest::header::USER_AGENT;
 use reqwest::Method;
 
 const VERSION :&str = "1.7";
+/// remote url, will be removed in future version
 pub const URL: &str = "https://blih.epitech.eu";
 
+/// Blih structure representing a Blih connection
+///
+/// Each intraction with Blih remote api is made with method
 pub struct Blih {
     user_agent: String,
     user: Option<String>,
@@ -22,6 +26,11 @@ pub struct Blih {
 
 impl Blih {
     /// return a new Blith struct
+    ///
+    /// # Description
+    ///
+    /// If `user` is equal to `None`, the value of env var `BLIH_USER`
+    /// If `token` is equal to `None`, the value of env var `BLIH_TOKEN`
     pub fn new(user :Option<&str>, token :Option<&str>) -> Blih {
         let user = match user {
             Some(s) => Some(String::from(s)),
@@ -45,7 +54,7 @@ impl Blih {
         }
     }
 
-    /// Promt the user for his password.
+    /// Promt the user for the password, and store a `Sha512` of it.
     pub fn ask_password(&mut self) -> Result<(), BlihErr> {
         match prompt_password_stdout("Password: ") {
             Ok(s) => {
@@ -58,6 +67,7 @@ impl Blih {
         Ok(())
     }
 
+    /// sign the data using `Hmac512` algorithm
     fn sign_token(&self) -> Result<String, BlihErr> {
         let mut hmac = Hmac::new(Sha512::new(), match &self.token {
             Some(s) => s.as_bytes(),
@@ -86,22 +96,29 @@ impl Blih {
         &self.token
     }
 
+    /// send a whoami request.
     pub fn whoami(&self) -> Result<String, BlihErr> {
         self.request("/whoami", Method::GET, None)
     }
 
+    /// list all the repo on the remote
     pub fn list_repo(&self) -> Result<String, BlihErr> {
         self.request("/repositories", Method::GET, None)
     }
 
+    /// print info about the provided repo
     pub fn info_repo(&self, name: &str) -> Result<String, BlihErr> {
         self.request(&("/repository/".to_owned() + name), Method::GET, None)
     }
 
+    /// delete the repository on the remote
+    ///
+    /// **WARNING** No confirmation required
     pub fn delete_repo(&self, name: &str) -> Result<String, BlihErr> {
         self.request(&("/repository/".to_owned() + name), Method::DELETE, None)
     }
 
+    /// create a new repo
     pub fn create_repo(&self, name: &str) -> Result<String, BlihErr> {
         let mut map = HashMap::new();
         map.insert("name", name);
@@ -144,6 +161,7 @@ impl Blih {
     }
 }
 
+/// Blih error handling
 #[derive(Debug, PartialEq)]
 pub enum BlihErr {
     InvalidRequest,
