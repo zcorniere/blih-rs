@@ -1,5 +1,6 @@
 extern crate blih_rs;
 extern crate reqwest;
+extern crate json;
 #[macro_use]extern crate clap;
 
 use blih_rs::Blih;
@@ -33,9 +34,13 @@ fn main()
     };
     let res = match res {
         Ok(o) => o,
-        Err(e) => panic!("{}", e),
+        Err(e) => panic!("Err: {}", e),
     };
-    println!("{}", res);
+    let res = match json::parse(&res) {
+        Ok(s)  => s,
+        Err(s) => panic!("Malformed request : {}", s),
+    };
+    println!("{}", res.pretty(4));
 }
 
 fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihErr>
@@ -44,21 +49,11 @@ fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihEr
         Some(s) => s,
         None    => panic!(),
     };
-    let mut ret: Result<String, BlihErr> = match args.subcommand_matches("list") {
-        Some(_) => auth.list_repo(),
-        None    => Err(BlihErr::InvalidRequest),
-    };
-    ret = match args.subcommand_matches("info") {
-        Some(e) => auth.info_repo(e.value_of("NAME").unwrap()),
-        None    => Err(BlihErr::InvalidRequest),
-    };
-    ret = match args.subcommand_matches("delete") {
-        Some(e) => auth.delete_repo(e.value_of("NAME").unwrap()),
-        None    => Err(BlihErr::InvalidRequest),
-    };
-    ret = match args.subcommand_matches("create") {
-        Some(e) => auth.create_repo(e.value_of("NAME").unwrap()),
-        None    => Err(BlihErr::InvalidRequest),
-    };
-    ret
+    match args.subcommand_name() {
+        Some("list") => auth.list_repo(),
+        Some("info") => auth.info_repo(args.subcommand_matches("info").unwrap().value_of("NAME").unwrap()),
+        Some("delete") => auth.delete_repo(args.subcommand_matches("delete").unwrap().value_of("NAME").unwrap()),
+        Some("create") => auth.create_repo(args.subcommand_matches("create").unwrap().value_of("NAME").unwrap()),
+        None | Some(_) => panic!(),
+    }
 }
