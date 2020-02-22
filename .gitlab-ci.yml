@@ -1,0 +1,46 @@
+image: rust:latest
+stages:
+  - build
+  - test
+  - release
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo
+
+cache: &global_cache
+  key: ${CI_COMMIT_REF_SLUG}
+  policy: pull-push
+  paths:
+    - target/
+    - $CARGO_HOME
+
+build:build:
+  stage: build
+  cache:
+    <<: *global_cache
+  script:
+    - rustc --version && cargo --version
+    - cargo build --all
+
+test:test_run:
+  stage: test
+  cache:
+    <<: *global_cache
+  script:
+    - rustc --version && cargo --version
+    - cargo test --all
+
+release:generate_docs:
+  stage: release
+  cache:
+    <<: *global_cache
+  script:
+    - rustc --version && cargo --version
+    - cargo doc --no-deps
+    - mv target/doc public
+  artifacts:
+    paths:
+      - public
+  when: manual
+  only:
+    - master
