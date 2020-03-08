@@ -142,13 +142,10 @@ impl Blih {
                 map.insert(k, v);
             }
         }
-        let mut uri = String::from(URL);
-        uri.push_str(path);
-        let uri = match Url::parse(uri.as_str()) {
+        let uri = match Url::parse((URL.to_owned() + path).as_str()) {
                 Ok(o)  => o,
                 Err(_) => return Err(BlihErr::InvalidUrl),
             };
-
         let client = reqwest::blocking::Client::new();
         let res = client.request(meth, uri)
                     .header(USER_AGENT, &self.user_agent)
@@ -169,6 +166,7 @@ pub enum BlihErr {
     RequestFailed,
     NoTokenProvided,
     NoUserNameProvided,
+    ErrorHeader,
 }
 
 impl fmt::Display for BlihErr {
@@ -179,6 +177,7 @@ impl fmt::Display for BlihErr {
             BlihErr::RequestFailed      => write!(f, "Request Failed"),
             BlihErr::NoTokenProvided    => write!(f, "No token was provided"),
             BlihErr::NoUserNameProvided => write!(f, "No username was provided"),
+            BlihErr::ErrorHeader        => write!(f, "Error while building header"),
         }
     }
 }
