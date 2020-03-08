@@ -2,6 +2,7 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha512;
 use crypto::hmac::Hmac;
 use crypto::mac::Mac;
+use json::JsonValue;
 use rpassword::prompt_password_stdout;
 
 use std::fmt;
@@ -68,7 +69,7 @@ impl Blih {
     }
 
     /// sign the data using `Hmac512` algorithm
-    fn sign_token(&self) -> Result<String, BlihErr> {
+    fn sign_token(&self, data: &Option<JsonValue>) -> Result<String, BlihErr> {
         let mut hmac = Hmac::new(Sha512::new(), match &self.token {
             Some(s) => s.as_bytes(),
             None    => return Err(BlihErr::NoTokenProvided),
@@ -77,9 +78,10 @@ impl Blih {
             Some(s) => s.as_bytes(),
             None    => return Err(BlihErr::NoUserNameProvided),
         });
-        let hex = hmac.result();
-        let hex = hex.code();
-        Ok(hex::encode(hex))
+        if data.is_some() {
+            hmac.input(data.as_ref().unwrap().pretty(4).as_bytes());
+        }
+        Ok(hex::encode(hmac.result().code()))
     }
     /// return the user_agent
     pub fn get_user_agent(&self) -> &String {
@@ -123,12 +125,12 @@ impl Blih {
         let mut map = HashMap::new();
         map.insert("name", name);
         map.insert("type", "git");
-        self.request("/repositories", Method::POST, Some(map))
+        self.request("/repositories", Method::POST, Some(JsonValue::from(map)))
     }
 
-    fn request(&self, path: &str, meth: Method, map_sup: Option<HashMap<&str, &str>>) -> Result<String, BlihErr> {
+    fn request(&self, path: &str, meth: Method, data: Option<JsonValue>) -> Result<String, BlihErr> {
         let mut map = HashMap::new();
-        let token = self.sign_token();
+        let token = self.sign_token(&data);
         map.insert("user", match &self.user {
             Some(s) => s.as_str(),
             None    => return Err(BlihErr::NoUserNameProvided),
@@ -137,10 +139,12 @@ impl Blih {
             Ok(s)  => s.as_str(),
             Err(_) => return Err(BlihErr::NoTokenProvided),
         });
-        if map_sup.is_some() {
-            for (k, v) in map_sup.unwrap().drain() {
-                map.insert(k, v);
-            }
+        let data = match data {
+            Some(_) => data.as_ref().unwrap().pretty(4),
+            None    => String::from(""),
+        };
+        if data.is_empty() == false {
+            map.insert("data", &data);
         }
         let uri = match Url::parse((URL.to_owned() + path).as_str()) {
                 Ok(o)  => o,
@@ -166,7 +170,7 @@ pub enum BlihErr {
     RequestFailed,
     NoTokenProvided,
     NoUserNameProvided,
-    ErrorHeader,
+    HeaderError,
 }
 
 impl fmt::Display for BlihErr {
@@ -177,7 +181,7 @@ impl fmt::Display for BlihErr {
             BlihErr::RequestFailed      => write!(f, "Request Failed"),
             BlihErr::NoTokenProvided    => write!(f, "No token was provided"),
             BlihErr::NoUserNameProvided => write!(f, "No username was provided"),
-            BlihErr::ErrorHeader        => write!(f, "Error while building header"),
+            BlihErr::HeaderError        => write!(f, "Error while building header"),
         }
     }
 }
