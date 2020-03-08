@@ -9,7 +9,7 @@ use std::fmt;
 
 use std::collections::HashMap;
 use reqwest::Url;
-use reqwest::header::USER_AGENT;
+use reqwest::header::{USER_AGENT, CONTENT_TYPE};
 use reqwest::Method;
 
 const VERSION :&str = "1.7";
@@ -129,22 +129,18 @@ impl Blih {
     }
 
     fn request(&self, path: &str, meth: Method, data: Option<JsonValue>) -> Result<String, BlihErr> {
-        let mut map = HashMap::new();
+        let mut map = JsonValue::new_object();
         let token = self.sign_token(&data);
         map.insert("user", match &self.user {
             Some(s) => s.as_str(),
             None    => return Err(BlihErr::NoUserNameProvided),
-        });
+        }).unwrap();
         map.insert("signature", match &token {
             Ok(s)  => s.as_str(),
             Err(_) => return Err(BlihErr::NoTokenProvided),
-        });
-        let data = match data {
-            Some(_) => data.as_ref().unwrap().pretty(4),
-            None    => String::from(""),
-        };
-        if data.is_empty() == false {
-            map.insert("data", &data);
+        }).unwrap();
+        if data.is_some() {
+            map.insert("data", data.unwrap()).unwrap();
         }
         let uri = match Url::parse((URL.to_owned() + path).as_str()) {
                 Ok(o)  => o,
@@ -153,7 +149,8 @@ impl Blih {
         let client = reqwest::blocking::Client::new();
         let res = client.request(meth, uri)
                     .header(USER_AGENT, &self.user_agent)
-                    .json(&map).send();
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(map.dump()).send();
         let res = match res {
             Ok(o)  => o,
             Err(_) => return Err(BlihErr::RequestFailed),
