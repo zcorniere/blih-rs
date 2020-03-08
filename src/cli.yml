@@ -54,3 +54,25 @@ subcommands:
                         help: Name of the repo
                         index: 1
                         required: true
+            - setacl:
+                about: set acl of a repo
+                args:
+                    - NAME:
+                        help: Name of the repo
+                        index: 1
+                        required: true
+                    - USER:
+                        help: User name for the acl
+                        index: 2
+                        required: true
+                    - ACL:
+                        help: Acl to applied
+                        index: 3
+                        required: true
+            - getacl:
+                about: get acl about a repo
+                args:
+                    - NAME:
+                        help: Name of the repo
+                        index: 1
+                        required: true

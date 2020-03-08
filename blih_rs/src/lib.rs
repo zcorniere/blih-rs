@@ -128,6 +128,17 @@ impl Blih {
         self.request("/repositories", Method::POST, Some(JsonValue::from(map)))
     }
 
+    pub fn get_acl(&self, name: &str) -> Result<String, BlihErr> {
+        self.request(&("/repository/".to_owned() + name + "/acls"), Method::GET, None)
+    }
+
+    pub fn set_acl(&self, name: &str, user: &str, acl: &str) -> Result<String, BlihErr> {
+        let mut map = HashMap::new();
+        map.insert("acl", acl);
+        map.insert("user", user);
+        self.request(&("/repository/".to_owned() + name + "/acls"), Method::POST, Some(JsonValue::from(map)))
+    }
+
     fn request(&self, path: &str, meth: Method, data: Option<JsonValue>) -> Result<String, BlihErr> {
         let mut map = JsonValue::new_object();
         let token = self.sign_token(&data);
