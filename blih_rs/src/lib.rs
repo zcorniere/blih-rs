@@ -7,6 +7,9 @@ use rpassword::prompt_password_stdout;
 
 use std::fmt;
 
+use std::io::Read;
+use std::fs::OpenOptions;
+
 use std::collections::HashMap;
 use reqwest::Url;
 use reqwest::header::{USER_AGENT, CONTENT_TYPE};
@@ -139,6 +142,30 @@ impl Blih {
         self.request(&("/repository/".to_owned() + name + "/acls"), Method::POST, Some(JsonValue::from(map)))
     }
 
+    pub fn list_key(&self) -> Result<String, BlihErr> {
+        self.request("/sshkeys", Method::GET, None)
+    }
+
+    pub fn upload_key_str(&self, key: &str) -> Result<String, BlihErr> {
+        let mut map = HashMap::new();
+        map.insert("sshkey", key);
+        self.request("/sshkey", Method::POST, Some(JsonValue::from(map)))
+    }
+
+    pub fn upload_key_path(&self, key: &str) -> Result<String, BlihErr> {
+        let mut file = match OpenOptions::new().read(true).open(key) {
+            Ok(s)  => s,
+            Err(_) => return Err(BlihErr::InvalidSshKey),
+        };
+        let mut key = String::new();
+        match file.read_to_string(&mut key) {
+            Ok(_)  => (),
+            Err(_) => return Err(BlihErr::InvalidSshKey),
+        }
+        key = key.trim_matches('\n').to_string();
+        self.upload_key_str(&key)
+    }
+
     fn request(&self, path: &str, meth: Method, data: Option<JsonValue>) -> Result<String, BlihErr> {
         let mut map = JsonValue::new_object();
         let token = self.sign_token(&data);
@@ -178,6 +205,7 @@ pub enum BlihErr {
     RequestFailed,
     NoTokenProvided,
     NoUserNameProvided,
+    InvalidSshKey,
     HeaderError,
 }
 
@@ -189,6 +217,7 @@ impl fmt::Display for BlihErr {
             BlihErr::RequestFailed      => write!(f, "Request Failed"),
             BlihErr::NoTokenProvided    => write!(f, "No token was provided"),
             BlihErr::NoUserNameProvided => write!(f, "No username was provided"),
+            BlihErr::InvalidSshKey      => write!(f, "Invalid sshkey file"),
             BlihErr::HeaderError        => write!(f, "Error while building header"),
         }
     }

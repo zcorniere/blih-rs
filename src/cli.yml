@@ -26,6 +26,20 @@ args:
 subcommands:
     - whoami:
         about: Print who you are
+    - sshkey:
+        about: management sshkeys
+        settings:
+            - SubcommandRequiredElseHelp
+        subcommands:
+            - list:
+                about: list all the sshkey
+            - upload:
+                about: path to the sshkey file
+                args:
+                    - PATH:
+                        help: Path the the sshkey
+                        index: 1
+                        required: true
     - repository:
         about: Repository management
         settings:

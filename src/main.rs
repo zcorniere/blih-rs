@@ -27,6 +27,7 @@ fn main()
     let res = match args.subcommand_name() {
         Some("whoami")     => auth.whoami(),
         Some("repository") => repo_sub_cmd(args.subcommand_matches("repository"), &auth),
+        Some("sshkey")     => sshkey_sub_cmd(args.subcommand_matches("sshkey"), &auth),
         _                  => {
             println!("No command provided. Rerun with -h");
             return;
@@ -56,6 +57,19 @@ fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihEr
         Some("create") => auth.create_repo(args.subcommand_matches("create").unwrap().value_of("NAME").unwrap()),
         Some("getacl") => auth.get_acl(args.subcommand_matches("getacl").unwrap().value_of("NAME").unwrap()),
         Some("setacl") => auth.set_acl(args.subcommand_matches("setacl").unwrap().value_of("NAME").unwrap(), args.subcommand_matches("setacl").unwrap().value_of("USER").unwrap(),args.subcommand_matches("setacl").unwrap().value_of("ACL").unwrap()),
+        None | Some(_) => panic!(),
+    }
+}
+
+fn sshkey_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihErr>
+{
+    let args = match args {
+        Some(s) => s,
+        None    => panic!(),
+    };
+    match args.subcommand_name() {
+        Some("list")   => auth.list_key(),
+        Some("upload") => auth.upload_key_path(args.subcommand_matches("upload").unwrap().value_of("PATH").unwrap()),
         None | Some(_) => panic!(),
     }
 }
