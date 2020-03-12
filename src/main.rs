@@ -1,5 +1,4 @@
 extern crate blih_rs;
-extern crate reqwest;
 extern crate json;
 #[macro_use]extern crate clap;
 

@@ -1,6 +1,6 @@
 [package]
 name = "blih_rs"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Zacharie Corniere <cornierez@gmail.com>"]
 description = "Epitech blih interface in rust"
 repository = "https://github.com/zcorniere/blih-rs"
@@ -17,5 +17,5 @@ hex = "0.4.2"
 
 [dependencies.reqwest]
 version = "~0.10"
-default-features = true
-features = ["json", "blocking"]
+default-features = false
+features = ["blocking", "native-tls"]
