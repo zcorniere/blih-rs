@@ -12,7 +12,7 @@ fn main()
     let yaml = load_yaml!("cli.yml");
     let args = App::from_yaml(yaml).get_matches();
 
-    let mut auth = Blih::new(args.value_of("user"), args.value_of("token"));
+    let mut auth = Blih::new(args.value_of("user"), args.value_of("token"), args.value_of("baseurl"));
     if auth.get_user().is_none() == true {
         println!("{}", BlihErr::NoUserNameProvided);
         return;

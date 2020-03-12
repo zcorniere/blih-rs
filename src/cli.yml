@@ -7,6 +7,13 @@ about: Epitech blih client
 settings:
     - SubcommandRequiredElseHelp
 args:
+    - baseurl:
+        short: b
+        long: baseurl
+        help: Base URL for BLIH
+        takes_value: true
+        value_name: baseurl
+        default_value: "https://blih.epitech.eu"
     - verbose:
         short: v
         long: verbose

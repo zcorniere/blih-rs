@@ -24,6 +24,7 @@ pub const URL: &str = "https://blih.epitech.eu";
 /// Each intraction with Blih remote api is made with method
 pub struct Blih {
     user_agent: String,
+    url: String,
     user: Option<String>,
     token: Option<String>,
 }
@@ -35,7 +36,7 @@ impl Blih {
     ///
     /// If `user` is equal to `None`, the value of env var `BLIH_USER`
     /// If `token` is equal to `None`, the value of env var `BLIH_TOKEN`
-    pub fn new(user :Option<&str>, token :Option<&str>) -> Blih {
+    pub fn new(user: Option<&str>, token: Option<&str>, url: Option<&str>) -> Blih {
         let user = match user {
             Some(s) => Some(String::from(s)),
             None    => match std::env::var("BLIH_USER") {
@@ -50,9 +51,14 @@ impl Blih {
                     Err(_)  => None,
                 },
         };
+        let url = match url {
+            Some(s) => String::from(s),
+            None    => String::from("https://blih.epitech.eu"),
+        };
         let user_agent = String::from("blih-".to_owned() + VERSION);
         Blih {
             user_agent,
+            url,
             user,
             token,
         }
@@ -180,7 +186,7 @@ impl Blih {
         if data.is_some() {
             map.insert("data", data.unwrap()).unwrap();
         }
-        let uri = match Url::parse((URL.to_owned() + path).as_str()) {
+        let uri = match Url::parse((self.url.clone() + path).as_str()) {
                 Ok(o)  => o,
                 Err(_) => return Err(BlihErr::InvalidUrl),
             };
