@@ -38,18 +38,12 @@ impl Blih {
     /// If `token` is equal to `None`, the value of env var `BLIH_TOKEN`
     pub fn new(user: Option<&str>, token: Option<&str>, url: Option<&str>) -> Blih {
         let user = match user {
-            Some(s) => Some(String::from(s)),
-            None    => match std::env::var("BLIH_USER") {
-                    Ok(o)  => Some(o),
-                    Err(_) => None,
-                },
+            Some(s) => Some(s.to_string()),
+            None    => None,
         };
         let token = match token {
-            Some(s) => Some(String::from(s)),
-            None    => match std::env::var("BLIH_TOKEN") {
-                    Ok(o) => Some(o),
-                    Err(_)  => None,
-                },
+            Some(s) => Some(s.to_string()),
+            None    => None,
         };
         let url = match url {
             Some(s) => String::from(s),

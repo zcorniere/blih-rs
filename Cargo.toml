@@ -1,6 +1,6 @@
 [package]
 name = "blih"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Zacharie Corniere <cornierez@gmail.com>"]
 description = "Epitech blih cli interface"
 repository = "https://github.com/zcorniere/blih-rs"
@@ -9,6 +9,10 @@ keywords = [ "blih", "Epitech" ]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+config = []
 
 [dependencies]
 json = "0.12"
