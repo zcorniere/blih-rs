@@ -96,9 +96,19 @@ impl Blih {
         &self.user
     }
 
+    /// set the token
+    pub fn set_user(&mut self, user: Option<String>) {
+        self.user = user;
+    }
+
     /// return the token
     pub fn get_token(&self) -> &Option<String> {
         &self.token
+    }
+
+    /// set the token
+    pub fn set_token(&mut self, token: Option<String>) {
+        self.token = token;
     }
 
     /// send a whoami request.
