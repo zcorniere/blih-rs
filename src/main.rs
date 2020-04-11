@@ -101,14 +101,14 @@ fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihEr
         Some(s) => s,
         None    => panic!(),
     };
-    match args.subcommand_name() {
-        Some("list") => auth.list_repo(),
-        Some("info") => auth.info_repo(args.subcommand_matches("info").unwrap().value_of("NAME").unwrap()),
-        Some("delete") => auth.delete_repo(args.subcommand_matches("delete").unwrap().value_of("NAME").unwrap()),
-        Some("create") => auth.create_repo(args.subcommand_matches("create").unwrap().value_of("NAME").unwrap()),
-        Some("getacl") => auth.get_acl(args.subcommand_matches("getacl").unwrap().value_of("NAME").unwrap()),
-        Some("setacl") => auth.set_acl(args.subcommand_matches("setacl").unwrap().value_of("NAME").unwrap(), args.subcommand_matches("setacl").unwrap().value_of("USER").unwrap(),args.subcommand_matches("setacl").unwrap().value_of("ACL").unwrap()),
-        None | Some(_) => panic!(),
+    match args.subcommand() {
+        ("list", Some(_)) => auth.list_repo(),
+        ("info", Some(s)) => auth.info_repo(s.value_of("NAME").unwrap()),
+        ("delete", Some(s)) => auth.delete_repo(s.value_of("NAME").unwrap()),
+        ("create", Some(s)) => auth.create_repo(s.value_of("NAME").unwrap()),
+        ("getacl", Some(s)) => auth.get_acl(s.value_of("NAME").unwrap()),
+        ("setacl", Some(s)) => auth.set_acl(s.value_of("NAME").unwrap(), s.value_of("USER").unwrap(), s.value_of("ACL").unwrap()),
+        (_, _) => panic!(),
     }
 }
 
@@ -118,9 +118,9 @@ fn sshkey_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, Blih
         Some(s) => s,
         None    => panic!(),
     };
-    match args.subcommand_name() {
-        Some("list")   => auth.list_key(),
-        Some("upload") => auth.upload_key_path(args.subcommand_matches("upload").unwrap().value_of("PATH").unwrap()),
-        None | Some(_) => panic!(),
+    match args.subcommand() {
+        ("list", Some(_))   => auth.list_key(),
+        ("upload", Some(s)) => auth.upload_key_path(s.value_of("PATH").unwrap()),
+        (_, _) => panic!(),
     }
 }

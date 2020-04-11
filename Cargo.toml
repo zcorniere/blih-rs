@@ -1,6 +1,6 @@
 [package]
 name = "blih"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Zacharie Corniere <cornierez@gmail.com>"]
 description = "Epitech blih cli interface"
 repository = "https://github.com/zcorniere/blih-rs"
