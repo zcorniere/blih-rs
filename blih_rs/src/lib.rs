@@ -23,10 +23,10 @@ pub const URL: &str = "https://blih.epitech.eu";
 ///
 /// Each intraction with Blih remote api is made with method
 pub struct Blih {
-    user_agent: String,
-    url: String,
-    user: Option<String>,
-    token: Option<String>,
+    pub user_agent: String,
+    pub url: String,
+    pub user: Option<String>,
+    pub token: Option<String>,
 }
 
 impl Blih {
@@ -85,30 +85,6 @@ impl Blih {
             hmac.input(data.as_ref().unwrap().pretty(4).as_bytes());
         }
         Ok(hex::encode(hmac.result().code()))
-    }
-    /// return the user_agent
-    pub fn get_user_agent(&self) -> &String {
-        &self.user_agent
-    }
-
-    /// return the user
-    pub fn get_user(&self) -> &Option<String> {
-        &self.user
-    }
-
-    /// set the token
-    pub fn set_user(&mut self, user: Option<String>) {
-        self.user = user;
-    }
-
-    /// return the token
-    pub fn get_token(&self) -> &Option<String> {
-        &self.token
-    }
-
-    /// set the token
-    pub fn set_token(&mut self, token: Option<String>) {
-        self.token = token;
     }
 
     /// send a whoami request.
@@ -194,16 +170,15 @@ impl Blih {
                 Ok(o)  => o,
                 Err(_) => return Err(BlihErr::InvalidUrl),
             };
-        let client = reqwest::blocking::Client::new();
-        let res = client.request(meth, uri)
+        let client = reqwest::blocking::Client::new().request(meth, uri)
                     .header(USER_AGENT, &self.user_agent)
                     .header(CONTENT_TYPE, "application/json")
                     .body(map.dump()).send();
-        let res = match res {
+        let client = match client {
             Ok(o)  => o,
             Err(_) => return Err(BlihErr::RequestFailed),
         };
-        Ok(res.text().unwrap())
+        Ok(client.text().unwrap())
     }
 }
 
@@ -218,6 +193,8 @@ pub enum BlihErr {
     InvalidSshKey,
     HeaderError,
 }
+
+impl std::error::Error for BlihErr {}
 
 impl fmt::Display for BlihErr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

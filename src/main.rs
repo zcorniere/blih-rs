@@ -19,14 +19,14 @@ fn main() {
     #[cfg(feature = "config")]
     let mut config = Config::get_config(args.value_of("path"));
     #[cfg(not(feature = "config"))]
-    let mut config = Config::new_empty(None);
+    let mut config = Config::default();
 
     let mut auth = blih_from_config(&args, &mut config);
-    if auth.get_user().is_none() == true {
+    if auth.user.is_none() == true {
         println!("{}", BlihErr::NoUserNameProvided);
         return;
     }
-    if auth.get_token().is_none() == true {
+    if auth.token.is_none() == true {
         if auth.ask_password().is_err() {
             println!("{}", BlihErr::NoUserNameProvided);
         } else {

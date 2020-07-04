@@ -137,6 +137,12 @@ impl Config {
     }
 }
 
+impl Default for Config {
+    fn default() -> Config {
+        Config::new_empty(None)
+    }
+}
+
 /// return the path to the config folder
 ///
 /// If the `BLIH_PATH` env variable is set, use it's value
