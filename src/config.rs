@@ -4,11 +4,11 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 
 pub struct Config {
-    user: Option<String>,
-    token: Option<String>,
-    baseurl: Option<String>,
-    file: PathBuf,
-    changed: bool,
+    pub user: Option<String>,
+    pub token: Option<String>,
+    pub baseurl: Option<String>,
+    pub file: PathBuf,
+    pub changed: bool,
 }
 
 impl Config {
@@ -66,39 +66,6 @@ impl Config {
         }
     }
 
-    pub fn get_user(&self) -> &Option<String> {
-        &self.user
-    }
-
-    pub fn set_user(&mut self, val: &Option<String>) {
-        if &self.user != val {
-            self.changed = true;
-        }
-        self.user = val.clone();
-    }
-
-    pub fn get_baseurl(&self) -> &Option<String> {
-        &self.baseurl
-    }
-
-    pub fn set_baseurl(&mut self, val: &Option<String>) {
-        if &self.baseurl != val {
-            self.changed = true;
-        }
-        self.baseurl = val.clone();
-    }
-
-    pub fn get_token(&self) -> &Option<String> {
-        &self.token
-    }
-
-    pub fn set_token(&mut self, val: &Option<String>) {
-        if &self.token != val {
-            self.changed = true;
-        }
-        self.token = val.clone();
-    }
-
     pub fn dump(&self) -> Result<Box<JsonValue>, ()> {
         let mut content = Box::new(JsonValue::new_object());
         if self.user.is_some() {
@@ -123,9 +90,6 @@ impl Config {
     }
 
     pub fn write_config(&self) {
-        if !self.changed {
-            return;
-        }
         let json = self.dump().unwrap().pretty(4);
         let mut file = OpenOptions::new()
             .write(true)

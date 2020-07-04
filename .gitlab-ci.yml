@@ -20,7 +20,7 @@ build:build:
     <<: *global_cache
   script:
     - rustc --version && cargo --version
-    - cargo build --all
+    - cargo build --all --all-features
 
 test:test_run:
   stage: test
@@ -28,7 +28,7 @@ test:test_run:
     <<: *global_cache
   script:
     - rustc --version && cargo --version
-    - cargo test --all
+    - cargo test --all --all-features
 
 release:generate_docs:
   stage: release

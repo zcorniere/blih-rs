@@ -30,8 +30,7 @@ fn main() {
         if auth.ask_password().is_err() {
             println!("{}", BlihErr::NoUserNameProvided);
         } else {
-            #[cfg(feature = "config")]
-            config.set_token(auth.get_token());
+            config.token = auth.token.clone();
         }
     }
 
@@ -62,7 +61,7 @@ fn blih_from_config(args: &ArgMatches, config: &mut Config) -> Blih {
         Some(s) => Some(s.to_string()),
         None => match std::env::var("BLIH_USER") {
             Ok(o) => Some(o),
-            Err(_) => match config.get_user() {
+            Err(_) => match &config.user {
                 Some(s) => Some(s.to_string()),
                 None => None,
             },
@@ -72,7 +71,7 @@ fn blih_from_config(args: &ArgMatches, config: &mut Config) -> Blih {
         Some(s) => Some(s.to_string()),
         None => match std::env::var("BLIH_TOKEN") {
             Ok(o) => Some(o),
-            Err(_) => match config.get_token() {
+            Err(_) => match &config.token {
                 Some(s) => Some(s.to_string()),
                 None => None,
             },
@@ -82,16 +81,16 @@ fn blih_from_config(args: &ArgMatches, config: &mut Config) -> Blih {
         Some(s) => Some(s.to_string()),
         None => match std::env::var("BLIH_URL") {
             Ok(o) => Some(o),
-            Err(_) => match config.get_baseurl() {
+            Err(_) => match &config.baseurl {
                 Some(s) => Some(s.to_string()),
                 None => None,
             },
         },
     };
-    config.set_user(&user);
-    config.set_token(&token);
-    config.set_baseurl(&baseurl);
-    Blih::new(user.as_deref(), token.as_deref(), baseurl.as_deref())
+    config.user = user;
+    config.token = token;
+    config.baseurl = baseurl;
+    Blih::new(config.user.as_deref(), config.token.as_deref(), config.baseurl.as_deref())
 }
 
 fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihErr> {
