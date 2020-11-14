@@ -49,7 +49,7 @@ impl Blih {
             Some(s) => String::from(s),
             None    => String::from("https://blih.epitech.eu"),
         };
-        let user_agent = String::from("blih-".to_owned() + VERSION);
+        let user_agent = "blih-".to_owned() + VERSION;
         Blih {
             user_agent,
             url,
@@ -163,8 +163,8 @@ impl Blih {
             Ok(s)  => s.as_str(),
             Err(_) => return Err(BlihErr::NoTokenProvided),
         }).unwrap();
-        if data.is_some() {
-            map.insert("data", data.unwrap()).unwrap();
+        if let Some(data) = data {
+            map.insert("data", data).unwrap();
         }
         let uri = match Url::parse((self.url.clone() + path).as_str()) {
                 Ok(o)  => o,

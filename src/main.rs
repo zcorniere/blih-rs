@@ -26,7 +26,7 @@ fn main() {
         println!("{}", BlihErr::NoUserNameProvided);
         return;
     }
-    if auth.token.is_none() == true {
+    if auth.token.is_none() {
         if auth.ask_password().is_err() {
             println!("{}", BlihErr::NoUserNameProvided);
         } else {
@@ -34,10 +34,10 @@ fn main() {
         }
     }
 
-    let res = match args.subcommand_name() {
-        Some("whoami") => auth.whoami(),
-        Some("repository") => repo_sub_cmd(args.subcommand_matches("repository"), &auth),
-        Some("sshkey") => sshkey_sub_cmd(args.subcommand_matches("sshkey"), &auth),
+    let res = match args.subcommand() {
+        ("whoami", _) => auth.whoami(),
+        ("repository", Some(s)) => repo_sub_cmd(s, &auth),
+        ("sshkey", Some(s)) => sshkey_sub_cmd(s, &auth),
         _ => {
             println!("No command provided. Rerun with -h");
             return;
@@ -93,11 +93,7 @@ fn blih_from_config(args: &ArgMatches, config: &mut Config) -> Blih {
     Blih::new(config.user.as_deref(), config.token.as_deref(), config.baseurl.as_deref())
 }
 
-fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihErr> {
-    let args = match args {
-        Some(s) => s,
-        None => panic!(),
-    };
+fn repo_sub_cmd(args: &ArgMatches, auth: &Blih) -> Result<String, BlihErr> {
     match args.subcommand() {
         ("list", Some(_)) => auth.list_repo(),
         ("info", Some(s)) => auth.info_repo(s.value_of("NAME").unwrap()),
@@ -113,11 +109,7 @@ fn repo_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihEr
     }
 }
 
-fn sshkey_sub_cmd(args: Option<&ArgMatches>, auth: &Blih) -> Result<String, BlihErr> {
-    let args = match args {
-        Some(s) => s,
-        None => panic!(),
-    };
+fn sshkey_sub_cmd(args: &ArgMatches, auth: &Blih) -> Result<String, BlihErr> {
     match args.subcommand() {
         ("list", Some(_)) => auth.list_key(),
         ("upload", Some(s)) => auth.upload_key_path(s.value_of("PATH").unwrap()),

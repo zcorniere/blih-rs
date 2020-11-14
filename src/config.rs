@@ -38,10 +38,10 @@ impl Config {
         let token = parsed["token"].take_string();
         let baseurl = parsed["baseurl"].take_string();
         Config {
-            user: user,
-            token: token,
-            baseurl: baseurl,
-            file: file.clone(),
+            user,
+            token,
+            baseurl,
+            file,
             changed: false,
         }
     }
@@ -69,22 +69,13 @@ impl Config {
     pub fn dump(&self) -> Result<Box<JsonValue>, ()> {
         let mut content = Box::new(JsonValue::new_object());
         if self.user.is_some() {
-            match content.insert("user", self.user.as_ref().unwrap().as_str()) {
-                Err(_) => return Err(()),
-                _ => (),
-            }
+            content.insert("user", self.user.as_ref().unwrap().as_str()).unwrap();
         }
         if self.token.is_some() {
-            match content.insert("token", self.token.as_ref().unwrap().as_str()) {
-                Err(_) => return Err(()),
-                _ => (),
-            }
+           content.insert("token", self.token.as_ref().unwrap().as_str()).unwrap();
         }
         if self.baseurl.is_some() {
-            match content.insert("baseurl", self.baseurl.as_ref().unwrap().as_str()) {
-                Err(_) => return Err(()),
-                _ => (),
-            }
+           content.insert("baseurl", self.baseurl.as_ref().unwrap().as_str()).unwrap();
         }
         Ok(content)
     }
